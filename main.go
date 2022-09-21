@@ -84,7 +84,8 @@ func main() {
 		id := context.Param("id")
 		result, err := db.Exec("DELETE FROM \"User\" WHERE id = $1", id)
 		if err != nil {
-			log.Panic(err)
+			context.String(http.StatusBadRequest, "Failed")
+			return
 		}
 		res, _ := result.RowsAffected()
 		if res > 0 {
