@@ -80,6 +80,36 @@ func main() {
 		})
 	}
 
+	app.DELETE("/delete/:id", func(context *gin.Context) {
+		id := context.Param("id")
+		result, err := db.Exec("DELETE FROM \"User\" WHERE id = $1", id)
+		if err != nil {
+			log.Panic(err)
+		}
+		res, _ := result.RowsAffected()
+		if res > 0 {
+			context.String(http.StatusOK, "Successful")
+		} else {
+			context.String(http.StatusBadRequest, "Failed")
+		}
+	})
+
+	app.GET("/get/:id", func(context *gin.Context) {
+		id := context.Param("id")
+		row := db.QueryRow("select * from \"User\" where id = $1", id)
+		if err != nil {
+			log.Panic(err)
+		}
+
+		u := User{}
+		err := row.Scan(&u.id, &u.username, &u.password, &u.createAt, &u.updateAt)
+		if err != nil {
+			context.String(http.StatusBadRequest, "Failed")
+		} else {
+			context.JSON(http.StatusOK, gin.H{"id": u.id, "username": u.username, "password": u.password, "createAt": u.createAt, "updateAt": u.updateAt})
+		}
+	})
+
 	defer db.Close()
 	app.Run("localhost:8080")
 }
